@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <body>
+    <style>
+      #container {
+        height: 150px;
+        width: 150px;
+        margin: 0 auto;
+        overflow: hidden;
+      }
+      #container > img {
+        position: relative;
+        top: -150px;
+      }
+      #min {
+        width: 20%;
+      }
+
+      #min:hover {
+        cursor: zoom-in;
+      }
+    </style>
+    <div>
+      <button id="prev">prev</button>
+      <h5 id="photoNum"></h5>
+      <button id="next">next</button>
+    </div>
+    <img id="min" />
+    <div id="container">
+      <img id="max" />
+    </div>
+    <script defer>
+      let photos = [];
+      let nowPhoto = localStorage.getItem("now");
+      nowPhoto = nowPhoto ? +nowPhoto : 0;
+      localStorage.setItem("now", nowPhoto);
+
+      fetch(
+        "https://pixabay.com/api/?key=11960291-c7447504f287f69be8bac7980&q=yellow+flowers&image_type=photo"
+      )
+        .then(d => d.json())
+        .then(d => {
+          photos = d.hits;
+          renderPhoto(nowPhoto);
+        })
+        .then(next.removeAttribute("disabled"))
+        .catch(console.log);
+
+      min.addEventListener("mousemove", ({ target, offsetX, offsetY }) => {
+        let { width, height } = target.getBoundingClientRect();
+        let maxSizes = max.getBoundingClientRect();
+        width = Math.round(width);
+        height = Math.round(height);
+        max.style.cssText = `
+          left: -${maxSizes.width * (offsetX / width) - 75}px;
+          top: -${maxSizes.height * (offsetY / height) - 75}px;
+          `;
+      });
+
+      next.addEventListener("click", () => {
+        nowPhoto += 1;
+        localStorage.setItem("now", nowPhoto);
+        renderPhoto(nowPhoto);
+      });
+
+      prev.addEventListener("click", () => {
+        nowPhoto -= 1;
+        localStorage.setItem("now", nowPhoto);
+        renderPhoto(nowPhoto);
+      });
+
+      function renderPhoto(num) {
+        if (nowPhoto <= 0) {
+          prev.setAttribute("disabled", "disabled");
+        } else prev.removeAttribute("disabled");
+        if (nowPhoto >= photos.length - 1) {
+          next.setAttribute("disabled", "disabled");
+        } else next.removeAttribute("disabled");
+
+        photoNum.innerHTML = `${nowPhoto + 1} of ${photos.length}`;
+        max.src = photos[num].largeImageURL;
+        min.src = photos[num].webformatURL;
+      }
+    </script>
+  </body>
+</html>
